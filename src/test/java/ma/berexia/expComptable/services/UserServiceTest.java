@@ -1,7 +1,9 @@
 package ma.berexia.expComptable.services;
 
 import ma.berexia.expComptable.entity.User;
+import ma.berexia.expComptable.entity.UserRole;
 import ma.berexia.expComptable.repo.UserRepo;
+import ma.berexia.expComptable.service.exception.UserAlreadyExistException;
 import ma.berexia.expComptable.service.exception.UserNotFoundException;
 import ma.berexia.expComptable.service.impl.UserService;
 import org.assertj.core.api.Assertions;
@@ -25,8 +27,8 @@ public class UserServiceTest {
 
     @Test
     void save_user_and_return_user_with_generated_id(){
-        var user=new User(0,"test@test.com","test","ROLE",true);
-        var savedUser=new User(1,"test@test.com","test","ROLE",true);
+        var user=new User("test@test.com","test", UserRole.ADMIN,true);
+        var savedUser=new User(1,"test@test.com","test",UserRole.ADMIN,true);
 
         given(userRepo.save(user)).willReturn(savedUser);
 
@@ -36,9 +38,9 @@ public class UserServiceTest {
     @Test
     void get_all_users(){
         var users= new ArrayList<User>();
-        users.add(new User(1,"test@test.com","test","ROLE",true));
-        users.add(new User(2,"test2@test.com","test","ROLE",true));
-        users.add(new User(3,"test3@test.com","test","ROLE",true));
+        users.add(new User(1,"test@test.com","test",UserRole.ADMIN,true));
+        users.add(new User(2,"test2@test.com","test",UserRole.ADMIN,true));
+        users.add(new User(3,"test3@test.com","test",UserRole.ADMIN,true));
 
         given(userRepo.findAll()).willReturn(users);
 
@@ -48,7 +50,7 @@ public class UserServiceTest {
     @Test
     void user_found_by_id(){
         var userId=1;
-        var user=new User(1,"test@test.com","test","ROLE",true);
+        var user=new User(1,"test@test.com","test",UserRole.ADMIN,true);
 
         given(userRepo.findById(userId)).willReturn(Optional.of(user));
 
@@ -58,8 +60,19 @@ public class UserServiceTest {
     void user_not_found_by_id(){
         var userId=1;
 
-        given(userRepo.findById(userId)).willThrow(new UserNotFoundException());
+        given(userRepo.findById(userId)).willThrow(new UserNotFoundException("any"));
 
-        Assertions.assertThatCode(()->userService.getById(userId)).doesNotThrowAnyException();
+        Assertions.assertThatExceptionOfType(UserNotFoundException.class)
+                .isThrownBy(()->userService.getById(userId));
+    }
+
+    @Test
+    void user_already_exist(){
+        var user=new User("test@test.com","test",UserRole.ADMIN,true);
+
+        given(userRepo.findByEmail(user.getEmail())).willReturn(Optional.of(user));
+
+        Assertions.assertThatExceptionOfType(UserAlreadyExistException.class)
+                .isThrownBy(()->userService.save(user));
     }
 }

@@ -2,6 +2,7 @@ package ma.berexia.expComptable.security;
 
 
 import ma.berexia.expComptable.entity.User;
+import ma.berexia.expComptable.entity.UserRole;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -58,9 +59,9 @@ public class MyUserDetails implements UserDetails {
 		return this.user.getActive();
 	}
 
-	private List<GrantedAuthority> getGrantedAuthorities(String role){
+	private List<GrantedAuthority> getGrantedAuthorities(UserRole role){
 	        List<GrantedAuthority> authorities = new ArrayList<>();
-	        authorities.add(new SimpleGrantedAuthority(role));
+	        authorities.add(new SimpleGrantedAuthority(role.toString()));
 	        return authorities;
 	    }
 	 
